@@ -23,40 +23,35 @@ min_index(Min, [Head|Tail], Index, CIndex) ->
 min_index(_, [], Index, _) -> Index.
 
 %% Greedy process
-greedy_proc(Fringe) ->
+greedy_proc({Fi, Fj}) ->
 
     %% Do wait
     wait(1),
 
-    %% Check destination point
-    board ! {get_finish, self()},
+    %% Check if found
+    board ! {get_pos, self()},
     receive
-        {Fi, Fj} ->
-            %% Get current position
-            board ! {get_pos, self()},
+        {I, J} when (abs(I - Fi) =< 1) and (abs(J - Fj) =< 1) ->
+            found;
+        {_, _} ->
+            %% Jump
+            board ! {get_neighbors, self()},
             receive
-                {I, J} when (abs(I - Fi) =< 1) and (abs(J - Fj) =< 1) ->
-                    wait(3),
-                    greedy_proc(Fringe);
-                {_, _} ->
-                    %% Jump
-                    board ! {get_neighbors, self()},
-                    receive
-                        {[], _} ->
-                            io:format("Problems, got stuck :S~n"),
-                            error;
-                        {Cells, Heuristics} ->
-                            %% Move
-                            Min = min_index(Heuristics),
-                            Next = lists:nth(Min, Cells),
-                            board ! {move, Next},
-                            %% Update Fringe
-                            NewFringe = Fringe, %% TODO
-                            greedy_proc(NewFringe)
-                    end
+                {[], _} ->
+                    io:format("Problems, got stuck :S~n"),
+                    error;
+                {Cells, Heuristics} ->
+                    Min = min_index(Heuristics),
+                    Next = lists:nth(Min, Cells),
+                    board ! {move, Next},
+                    greedy_proc({Fi, Fj})
             end
     end.
 
 %% Spawn greedy
 greedy() ->
-    spawn(search, greedy_proc, [[]]).
+    board ! {get_finish, self()},
+    receive
+        {Fi, Fj} ->
+            spawn(search, greedy_proc, [{Fi, Fj}])
+    end.
