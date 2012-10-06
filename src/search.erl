@@ -39,14 +39,21 @@ greedy_proc({Fi, Fj}, FringeCell, FringeHeu) ->
             receive
                 {[], _} ->
                     io:format("Problems, got stuck :S~n"),
-                    error;
+                    %% Move
+                    {Val, Min} = minimum(FringeHeu),
+                    Next = lists:nth(Min, FringeCell),
+                    io:format("Will try to backtrack to ~w~n", [Next]),
+                    board ! {move, Next},
+                    %% Remove new search point from Fringe
+                    NewFringeCell = lists:delete(Next, FringeCell),
+                    NewFringeHeu =  lists:delete(Val, FringeHeu),
+                    greedy_proc({Fi, Fj}, NewFringeCell, NewFringeHeu);
                 {Cells, Heuristics} ->
                     %% Move
                     {Val, Min} = minimum(Heuristics),
                     Next = lists:nth(Min, Cells),
                     board ! {move, Next},
                     %% Add to Fringe
-
                     NewFringeCell = lists:append(FringeCell,
                                                  lists:delete(Next, Cells)),
                     NewFringeHeu =  lists:append(FringeHeu,
