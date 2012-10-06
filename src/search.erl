@@ -38,16 +38,22 @@ greedy_proc({Fi, Fj}, FringeCell, FringeHeu) ->
             board ! {get_neighbors, self()},
             receive
                 {[], _} ->
-                    io:format("Problems, got stuck :S~n"),
-                    %% Move
-                    {Val, Min} = minimum(FringeHeu),
-                    Next = lists:nth(Min, FringeCell),
-                    io:format("Will try to backtrack to ~w~n", [Next]),
-                    board ! {move, Next},
-                    %% Remove new search point from Fringe
-                    NewFringeCell = lists:delete(Next, FringeCell),
-                    NewFringeHeu =  lists:delete(Val, FringeHeu),
-                    greedy_proc({Fi, Fj}, NewFringeCell, NewFringeHeu);
+                    if
+                        FringeCell == [] ->
+                            io:format("Unable to find the path :(~n"),
+                            fail;
+                        true ->
+                            io:format("Problems, got stuck :S~n"),
+                            %% Move
+                            {Val, Min} = minimum(FringeHeu),
+                            Next = lists:nth(Min, FringeCell),
+                            io:format("Will try to backtrack to ~w~n", [Next]),
+                            board ! {move, Next},
+                            %% Remove new search point from Fringe
+                            NewFringeCell = lists:delete(Next, FringeCell),
+                            NewFringeHeu =  lists:delete(Val, FringeHeu),
+                            greedy_proc({Fi, Fj}, NewFringeCell, NewFringeHeu)
+                    end;
                 {Cells, Heuristics} ->
                     %% Move
                     {Val, Min} = minimum(Heuristics),
