@@ -10,20 +10,20 @@ wait(Sec) ->
     end.
 
 %% Index of the minimum
-min_index([]) -> error;
-min_index([_]) -> 1;
-min_index([Head|Tail]) -> min_index(Head, Tail, 1, 2).
-min_index(Min, [Head|Tail], Index, CIndex) ->
+minimum([]) -> error;
+minimum([Min]) -> {Min, 1};
+minimum([Head|Tail]) -> minimum(Head, Tail, 1, 2).
+minimum(Min, [Head|Tail], Index, CIndex) ->
     if
         Head < Min ->
-            min_index(Head, Tail, CIndex, CIndex + 1);
+            minimum(Head, Tail, CIndex, CIndex + 1);
         true ->
-            min_index(Min, Tail, Index, CIndex + 1)
+            minimum(Min, Tail, Index, CIndex + 1)
     end;
-min_index(_, [], Index, _) -> Index.
+minimum(Min, [], Index, _) -> {Min, Index}.
 
 %% Greedy process
-greedy_proc({Fi, Fj}) ->
+greedy_proc({Fi, Fj}, FringeCell, FringeHeu) ->
 
     %% Do wait
     wait(1),
@@ -41,10 +41,17 @@ greedy_proc({Fi, Fj}) ->
                     io:format("Problems, got stuck :S~n"),
                     error;
                 {Cells, Heuristics} ->
-                    Min = min_index(Heuristics),
+                    %% Move
+                    {Val, Min} = minimum(Heuristics),
                     Next = lists:nth(Min, Cells),
                     board ! {move, Next},
-                    greedy_proc({Fi, Fj})
+                    %% Add to Fringe
+
+                    NewFringeCell = lists:append(FringeCell,
+                                                 lists:delete(Next, Cells)),
+                    NewFringeHeu =  lists:append(FringeHeu,
+                                                lists:delete(Val, Heuristics)),
+                    greedy_proc({Fi, Fj}, NewFringeCell, NewFringeHeu)
             end
     end.
 
@@ -53,5 +60,5 @@ greedy() ->
     board ! {get_finish, self()},
     receive
         {Fi, Fj} ->
-            spawn(search, greedy_proc, [{Fi, Fj}])
+            spawn(search, greedy_proc, [{Fi, Fj}, [], []])
     end.
