@@ -88,6 +88,11 @@ eventLoop(Canvas, Board, Pos, SquareType) ->
 	    Proc ! Finish,
 	    eventLoop(Canvas, Board, Pos, SquareType);
 
+    {get_start_finish, Proc} ->
+        Finish = get(finish),
+	    Proc ! {Pos, Finish},
+	    eventLoop(Canvas, Board, Pos, SquareType);
+
 	{get_neighbors, Proc} ->
 	    Neighbors = neighbors(Board, Pos),
 	    io:format("neighbors ~w~n", [Neighbors]),
@@ -137,6 +142,8 @@ neighbors(Board,Cell={R,C},[{OR,OC}|Rest]) ->
 	true ->
 	    case element(Pos, Board) of
 		?EMPTY ->
+		    [{R+OR,C+OC}|neighbors(Board, Cell, Rest)];
+		?FINISH ->
 		    [{R+OR,C+OC}|neighbors(Board, Cell, Rest)];
 		_ ->
 		    neighbors(Board, Cell, Rest)
