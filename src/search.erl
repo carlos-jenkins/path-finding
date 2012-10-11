@@ -178,13 +178,77 @@ is_walkable(Board, X, Y) ->
         end
     end.
 
-identify_successors(Node) ->
-    %%Neighbors = find_neighbors(Node),
-    implement.
+%%identify_successors(Node, Parent) ->
+%%    Neighbors = find_neighbors(Node, Parent),
+%%    implement.
 
-find_neighbors(Node) ->
-    implement.
 
+%% Find the neighbors for the given node. If the node has a parent,
+%% prune the neighbors based on the jump point search algorithm, otherwise
+%% return all available neighbors.
+%% @return [{X1, Y1}, ..., {Xn, Yn}] The neighbors found.
+find_neighbors(Pos, none, Board) ->
+    %% No parent, return all neighbors
+    board:neighbors(Board, Pos);
+
+find_neighbors({X, Y}, {Px, Py}, Board) ->
+    %% Get the normalized direction of travel
+    Dx = (X - Px) / max(abs(X - Px), 1),
+    Dy = (Y - Py) / max(abs(Y - Py), 1),
+    find_neighbors_aux({X, Y, Dx, Dy}, Board).
+
+%% Search diagonally
+find_neighbors_aux({X, Y, Dx, Dy}, Board) when
+    ((Dx /= 0) and (Dy /= 0)) ->
+
+    W1 = is_walkable(Board, X, Y + Dy),
+    W2 = is_walkable(Board, X + Dx, Y),
+    W3 = is_walkable(Board, X, Y + Dy) or is_walkable(Board, X + Dx, Y),
+    W4 = not is_walkable(Board, X - Dx, Y) and is_walkable(Board, X, Y + Dy),
+    W5 = not is_walkable(Board, X, Y - Dy) and is_walkable(Board, X + Dx, Y),
+
+    L1 = if W1 -> [{X, Y + Dy}]; true -> [] end,
+    L2 = if W2 -> lists:append(L1, [{X + Dx, Y}]); true -> L1 end,
+    L3 = if W3 -> lists:append(L2, [{X + Dx, Y + Dy}]); true -> L2 end,
+    L4 = if W4 -> lists:append(L3, [{X - Dx, Y + Dy}]); true -> L3 end,
+    L5 = if W5 -> lists:append(L4, [{X + Dx, Y - Dy}]); true -> L4 end,
+    L5;
+
+%% Search horizontally
+find_neighbors_aux({X, Y, Dx, Dy}, Board) when Dx == 0 ->
+    W1 = is_walkable(Board, X, Y + Dy),
+    W2 = W1 and not is_walkable(Board, X + 1, Y),
+    W3 = W1 and not is_walkable(Board, X - 1, Y),
+    if
+    W1 ->
+        L1 = [{X, Y + Dy}],
+        L2 = if W2 -> lists:append(L1, [{X + 1, Y + Dy}]); true -> L1 end,
+        L3 = if W3 -> lists:append(L2, [{X - 1, Y + Dy}]); true -> L2 end,
+        L3;
+    true ->
+        []
+    end;
+
+%% Search vertically
+find_neighbors_aux({X, Y, Dx, _}, Board) ->
+    W1 = is_walkable(Board, X + Dx, Y),
+    W2 = W1 and not is_walkable(Board, X, Y + 1),
+    W3 = W1 and not is_walkable(Board, X, Y - 1),
+    if
+    W1 ->
+        L1 = [{X + Dx, Y}],
+        L2 = if W2 -> lists:append(L1, [{X + Dx, Y + 1}]); true -> L1 end,
+        L3 = if W3 -> lists:append(L2, [{X + Dx, Y - 1}]); true -> L2 end,
+        L3;
+    true ->
+        []
+    end.
+
+
+%% Search recursively in the direction (parent -> child), stopping only when a
+%% jump point is found.
+%% @return {number, number} The x, y coordinate of the jump point found, or
+%% empty tuple {} if not found.
 jump({X, Y, Px, Py}, Payload = {Board, {Ex, Ey}}) ->
 
     Dx = X - Px,
@@ -193,10 +257,8 @@ jump({X, Y, Px, Py}, Payload = {Board, {Ex, Ey}}) ->
     %% Simple cases
     Wall = not is_walkable(Board, X, Y),
     if
-    Wall ->
-        {};
-    (X == Ex) and (Ey == Ey) ->
-        {X, Y};
+    Wall -> {};
+    (X == Ex) and (Ey == Ey) -> {X, Y};
 
     %% Check for forced neighbors
     true ->
