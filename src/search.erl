@@ -199,7 +199,7 @@ jump_points() ->
 %% Jump Points process
 jump_points_proc([], _,_, _, _, _) ->
     fail;
-jump_points_proc(OpenList, Parents, Gs, Fs, {Ex, Ey}, Board) ->
+jump_points_proc(OpenList, Parents, Gs, Fs, End = {Ex, Ey}, Board) ->
     {_, Min} = minimum(Gs),
     {Nx, Ny} = lists:nth(Min, OpenList),
     Parent = lists:nth(Min, Parents),
@@ -209,33 +209,46 @@ jump_points_proc(OpenList, Parents, Gs, Fs, {Ex, Ey}, Board) ->
         found;
     true ->
         {NewOL, NewPs, NewGs, NewFs} = identify_successors({Nx, Ny}, Parent,
-                                        {OpenList, Parents, Gs, Fs, Board}),
-        jump_points_proc(NewOL, NewPs, NewGs, NewFs, {Ex, Ey}, Board)
+                                        {OpenList, Parents, Gs, Fs},
+                                        {Board, End}),
+        jump_points_proc(NewOL, NewPs, NewGs, NewFs, End, Board)
     end.
 
 %% Identify successors for the given node. Runs a jump point search in the
 %% direction of each available neighbor, adding any points found to the open
 %% list.
-identify_successors(Node, Parent, Payload = {_, _, _, _, Board}) ->
+identify_successors(Node, Parent, Context, Payload = {Board, _}) ->
     Neighbors = find_neighbors(Node, Parent, Board),
-    Context = identify_successors_aux(Node, Parent, Neighbors,
-                                      Payload, 0, length(Neighbors)),
-    Context.
+    NewContext = identify_successors_aux(Node, Parent, Neighbors,
+                                         Context, Payload,
+                                         0, length(Neighbors)),
+    NewContext.
 
-identify_successors_aux(_, _, _, {OpenList, Parents, Gs, Fs, _}, Current, Stop)
+identify_successors_aux(_, _, _, {OpenList, Parents, Gs, Fs}, _, Current, Stop)
         when Current == Stop ->
     {OpenList, Parents, Gs, Fs};
 
-identify_successors_aux(Node, Parent, Neighbors,
-                        {OpenList, Parents, Gs, Fs, Board},
+identify_successors_aux(Node = {X, Y}, Parent = {Px, Py}, Neighbors,
+                        Context = {OpenList, Parents, Gs, Fs},
+                        Payload = {Board, {Ex, Ey}},
                         Current, Stop) ->
-    %% FIXME: IMPLEMENT
-    {NewOL, NewPs, NewGs, NewFs, Board} = {OpenList, Parents, Gs, Fs, Board},
-    %% ENDFIXME
-    identify_successors_aux(Node, Parent, Neighbors,
-                        {NewOL, NewPs, NewGs, NewFs, Board},
-                        Current + 1, Stop).
 
+    {Nx, Ny} = lists:nth(Current, Neighbors),
+    JumpPoint = jump({Nx, Ny, X, Y}, Payload),
+    if
+    JumpPoint /= {} ->
+        {Jy, Jy} = JumpPoint,
+        %% FIXME IMPLEMENT
+        {NewOL, NewPs, NewGs, NewFs} = Context,
+        %% FIXME
+        identify_successors_aux(Node, Parent, Neighbors,
+                                {NewOL, NewPs, NewGs, NewFs}, Payload,
+                                Current + 1, Stop);
+    true ->
+        identify_successors_aux(Node, Parent, Neighbors,
+                                Context, Payload,
+                                Current + 1, Stop)
+    end.
 
 %% Find the neighbors for the given node. If the node has a parent,
 %% prune the neighbors based on the jump point search algorithm, otherwise
