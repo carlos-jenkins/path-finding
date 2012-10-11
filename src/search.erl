@@ -31,10 +31,17 @@ minimum(Min, [], Index, _) -> {Min, Index}.
 
 %% Index of a element in a list
 index_of(Item, List) -> index_of(Item, List, 1).
-index_of(_, [], _)  -> not_found;
+index_of(_, [], _) -> not_found;
 index_of(Item, [Item|_], Index) -> Index;
 index_of(Item, [_|Tail], Index) -> index_of(Item, Tail, Index + 1).
 
+%% Remove the Nth element in a list
+delete_nth(_,[]) -> not_found;
+delete_nth(Pos,[H|T]) ->
+    if
+        Pos == 1 -> T;
+        true -> lists:append([H], delete_nth(Pos - 1, T))
+    end.
 
 %%%%%%%%%%%%%%%%%%%%%
 %% GREEDY
@@ -197,28 +204,33 @@ jump_points() ->
             receive
                 Board ->
                 spawn(search, jump_points_proc, [
-                        [{Sx, Sy}], [none], [0], [0], {Ex, Ey}, Board
+                        [{Sx, Sy}], [none], [0], [0], [{Sx, Sy}], [],
+                         {Ex, Ey}, Board
                     ])
             end
         end
     end.
 
 %% Jump Points process
-jump_points_proc([], _,_, _, _, _) ->
+jump_points_proc([], _, _, _, _, _, _, _) ->
     fail;
-jump_points_proc(OpenList, Parents, Gs, Fs, End = {Ex, Ey}, Board) ->
+jump_points_proc(OpenList, Parents, Gs, Fs, Opened, Closed, End = {Ex, Ey}, Board) ->
     {_, Min} = minimum(Gs),
     {Nx, Ny} = lists:nth(Min, OpenList),
-    Parent = lists:nth(Min, Parents),
+    Parent   = lists:nth(Min, Parents),
+    NewCl    = lists:append(Closed, [{Nx, Ny}]),
     if
     ((Nx == Ex) and (Ny == Ey)) ->
         io:format("Destination found.~n"),
         found;
     true ->
-        {NewOL, NewPs, NewGs, NewFs} = identify_successors({Nx, Ny}, Parent,
-                                        {OpenList, Parents, Gs, Fs},
-                                        {Board, End}),
-        jump_points_proc(NewOL, NewPs, NewGs, NewFs, End, Board)
+        {NewOL, NewPs, NewGs, NewFs, NewOp, _} = identify_successors(
+                                {Nx, Ny}, Parent,
+                                {OpenList, Parents, Gs, Fs, Opened, NewCl},
+                                {Board, {Ex, Ey}}),
+        jump_points_proc(
+            NewOL, NewPs, NewGs, NewFs, NewOp, NewCl,
+            End, Board)
     end.
 
 %% Identify successors for the given node. Runs a jump point search in the
@@ -229,28 +241,64 @@ identify_successors(Node, Parent, Context, Payload = {Board, _}) ->
     Neighbors = find_neighbors(Node, Parent, Board),
     NewContext = identify_successors_aux(Node, Parent, Neighbors,
                                          Context, Payload,
-                                         0, length(Neighbors)),
+                                         1, length(Neighbors)),
     NewContext.
 
 identify_successors_aux(_, _, _, Context, _, Current, Stop)
         when Current == Stop ->
     Context;
-identify_successors_aux(Node = {X, Y}, Parent = {Px, Py}, Neighbors,
-                        Context = {OpenList, Parents, Gs, Fs},
-                        Payload = {Board, {Ex, Ey}},
+identify_successors_aux(Node = {X, Y}, Parent, Neighbors,
+                        Context = {OpenList, Parents, Gs, Fs, Opened, Closed},
+                        Payload = {_, {Ex, Ey}},
                         Current, Stop) ->
 
     {Nx, Ny} = lists:nth(Current, Neighbors),
     JumpPoint = jump({Nx, Ny, X, Y}, Payload),
     if
     JumpPoint /= {} ->
-        {Jy, Jy} = JumpPoint,
-        %% FIXME IMPLEMENT
-        {NewOL, NewPs, NewGs, NewFs} = Context,
-        %% FIXME
-        identify_successors_aux(Node, Parent, Neighbors,
-                                {NewOL, NewPs, NewGs, NewFs}, Payload,
-                                Current + 1, Stop);
+        {Jx, Jy} = JumpPoint,
+        JumpPointClosed = lists:member({Jx, Jy}, Closed),
+        if
+        JumpPointClosed ->
+            identify_successors_aux(Node, Parent, Neighbors,
+                                    Context, Payload,
+                                    Current + 1, Stop);
+        true ->
+            Dist = math:sqrt((Nx - X) * (Nx - X) + (Ny - Y) * (Ny - Y)),
+            Index = index_of(Node, OpenList),
+            Newg = lists:nth(Index, Gs) + Dist,
+            JumpPointOpened = lists:member({Jx,Jy}, Opened),
+            if
+            JumpPointOpened ->
+                IndexJP = index_of({Jx, Jy}, OpenList),
+                JPg = lists:nth(IndexJP, Gs),
+                if
+                Newg < JPg ->
+                    Newf = Newg + math:sqrt((Nx - Ex) * (Nx - Ex) + (Ny - Ey) * (Ny - Ey)),
+                    NewOL = lists:append(delete_nth(IndexJP, OpenList),[{Jx, Jy}]),
+                    NewPs = lists:append(delete_nth(IndexJP, Parents),[{X, Y}]),
+                    NewGs = lists:append(delete_nth(IndexJP, Gs), [Newg]),
+                    NewFs = lists:append(delete_nth(IndexJP, Fs), [Newf]),
+                    identify_successors_aux(Node, Parent, Neighbors,
+                                           {NewOL, NewPs, NewGs, NewFs},
+                                            Payload, Current + 1, Stop);
+                true -> identify_successors_aux(Node, Parent, Neighbors,
+                                                Context, Payload,
+                                                Current + 1, Stop)
+                end;
+            true ->
+                Newf = Newg + math:sqrt((Nx - Ex) * (Nx - Ex) + (Ny - Ey) * (Ny - Ey)),
+                NewOL = lists:append(OpenList,[{Jx,Jy}]),
+                NewPs = lists:append(Parents,[{X,Y}]),
+                NewGs = lists:append(Gs,[Newg]),
+                NewFs = lists:append(Fs,[Newf]),
+                NewOpened = lists:append(Opened,[{Jx,Jy}]),
+                identify_successors_aux(Node, Parent, Neighbors,
+                        {NewOL, NewPs, NewGs, NewFs, NewOpened, Closed},
+                        Payload, Current + 1, Stop)
+            end
+        end;
+
     true ->
         identify_successors_aux(Node, Parent, Neighbors,
                                 Context, Payload,
@@ -332,7 +380,7 @@ jump({X, Y, Px, Py}, Payload = {Board, {Ex, Ey}}) ->
     Wall = not is_walkable(Board, X, Y),
     if
     Wall -> {};
-    (X == Ex) and (Ey == Ey) -> {X, Y};
+    ((X == Ex) and (Ey == Ey)) -> {X, Y};
 
     %% Check for forced neighbors
     true ->
@@ -347,20 +395,20 @@ jump({X, Y, Px, Py}, Payload = {Board, {Ex, Ey}}) ->
         %% Moving horizontally / vertically
         %%  Moving along X axis
         AlongX = Diagonal or ((Dx /= 0) and ((
-            is_walkable(Board, X + Dx, Y + 1) and not
-            is_walkable(Board, X, Y + 1)
-        ) or (
-            is_walkable(Board, X + Dx, Y - 1) and not
-            is_walkable(Board, X, Y - 1)
-        ))),
+                        is_walkable(Board, X + Dx, Y + 1) and not
+                        is_walkable(Board, X, Y + 1)
+                    ) or (
+                        is_walkable(Board, X + Dx, Y - 1) and not
+                        is_walkable(Board, X, Y - 1)
+                    ))),
         %%  Moving along Y axis
         AlongY = AlongX or ((
-            is_walkable(Board, X + 1, Y + Dy) and not
-            is_walkable(Board, X + 1, Y)
-        ) or (
-            is_walkable(Board, X - 1, Y + Dy) and not
-            is_walkable(Board, X - 1, Y)
-        )),
+                        is_walkable(Board, X + 1, Y + Dy) and not
+                        is_walkable(Board, X + 1, Y)
+                    ) or (
+                        is_walkable(Board, X - 1, Y + Dy) and not
+                        is_walkable(Board, X - 1, Y)
+                    )),
         if
         Diagonal; AlongX; AlongY -> {X, Y};
         true ->
@@ -368,20 +416,27 @@ jump({X, Y, Px, Py}, Payload = {Board, {Ex, Ey}}) ->
             %%  When moving diagonally, must check for vertical / horizontal
             %%  jump points
             if
-            (Dx /= 0) and (Dy /= 0) ->
+            ((Dx /= 0) and (Dy /= 0)) ->
                 Jx = jump({X + Dx, Y, X, Y}, Payload),
                 Jy = jump({X, Y + Dy, X, Y}, Payload),
                 if
-                (Jx /= {}) or (Jy /= {}) -> {X, Y};
+                (Jx /= {}); (Jy /= {}) -> {X, Y};
                 true ->
             %%  Moving diagonally, must make sure one of the vertical/horizontal
             %%  neighbors is open to allow the path
                     AllowPath = is_walkable(Board, X + Dx, Y) or
                                 is_walkable(Board, X, Y + Dy),
                     if
-                        AllowPath -> jump({X + Dx, Y + Dy, X, Y}, Payload);
-                        true -> {}
+                    AllowPath -> jump({X + Dx, Y + Dy, X, Y}, Payload);
+                    true -> {}
                     end
+                end;
+            true ->
+                AllowPath = is_walkable(Board, X + Dx, Y) or
+                            is_walkable(Board, X, Y + Dy),
+                if
+                AllowPath -> jump({X + Dx, Y + Dy, X, Y}, Payload);
+                true -> {}
                 end
             end
         end
