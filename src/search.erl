@@ -178,9 +178,46 @@ is_walkable(Board, X, Y) ->
         end
     end.
 
-%%identify_successors(Node, Parent) ->
-%%    Neighbors = find_neighbors(Node, Parent),
-%%    implement.
+%% Spawn Jump Points
+jump_points() ->
+    board ! {get_finish, self()},
+    receive
+        {Ex, Ej} ->
+        board ! {get_pos, self()},
+        receive
+            {Sx, Sy} ->
+            board ! {get_board, self()},
+            receive
+                Board ->
+                spawn(search, jump_points_proc, [
+                        [{Sx, Sy}], [0], [0], {Ex, Ey}, Board
+                    ])
+            end
+        end
+    end.
+
+%% Jump Points process
+jump_points_proc([], _, _, _, _) ->
+    fail;
+jump_points_proc(OpenList, Gs, Fs, {Ex, Ey}, Board) ->
+    {Val, Min} = minimum(Gs),
+    {Nx, Ny} = lists:nth(Min, OpenList),
+    if
+    (Nx == Ex and Ny == Ey) ->
+        io:format("Destination found.~n"),
+        found;
+    true ->
+        {NewOL, NewGs, NewFs} = identify_successors(Node, Parent,
+                                                   {OpenList, Gs, Fs, Board}),
+        jump_points_proc(NewOL, NewGs, NewFs, {Ex, Ey}, Board)
+    end.
+
+%% Identify successors for the given node. Runs a jump point search in the
+%% direction of each available neighbor, adding any points found to the open
+%% list.
+identify_successors(Node, Parent, {}) ->
+    Neighbors = find_neighbors(Node, Parent, Board),
+    {[], [], []}. %% FIXME: Implement.
 
 
 %% Find the neighbors for the given node. If the node has a parent,
@@ -199,7 +236,7 @@ find_neighbors({X, Y}, {Px, Py}, Board) ->
 
 %% Search diagonally
 find_neighbors_aux({X, Y, Dx, Dy}, Board) when
-    ((Dx /= 0) and (Dy /= 0)) ->
+        ((Dx /= 0) and (Dy /= 0)) ->
 
     W1 = is_walkable(Board, X, Y + Dy),
     W2 = is_walkable(Board, X + Dx, Y),
