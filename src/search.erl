@@ -430,6 +430,13 @@ jump({X, Y, Px, Py}, Payload = {Board, {Ex, Ey}}) ->
                     AllowPath -> jump({X + Dx, Y + Dy, X, Y}, Payload);
                     true -> {}
                     end
+                end;
+            true ->
+                AllowPath = is_walkable(Board, X + Dx, Y) or
+                            is_walkable(Board, X, Y + Dy),
+                if
+                AllowPath -> jump({X + Dx, Y + Dy, X, Y}, Payload);
+                true -> {}
                 end
             end
         end
