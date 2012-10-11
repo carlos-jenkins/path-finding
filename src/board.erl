@@ -1,13 +1,13 @@
-%% Copyright (C) 2008, Jose Castro
-%% File    : othelloDisplay.erl
+%% Copyright (C) 2008-2012, Jose Castro
+%% File    : board.erl
 %% Author  : Jose Castro
-%% Purpose : OthelloDisplay
-%% Usage   : tetris:start().
+%% Purpose : GridDisplay
+%% Usage   : board:start().
 
 -module(board).
 
 -vsn(1).
--author('jose.r.castro@gmail.com').
+-author("jose.r.castro@gmail.com").
 
 -compile(export_all).
 -export([start/0]).
@@ -88,6 +88,10 @@ eventLoop(Canvas, Board, Pos, SquareType) ->
         Proc ! Finish,
         eventLoop(Canvas, Board, Pos, SquareType);
 
+    {get_board, Proc} ->
+        Proc ! Board,
+        eventLoop(Canvas, Board, Pos, SquareType);
+
     {get_neighbors, Proc} ->
         Neighbors = neighbors(Board, Pos),
         io:format("neighbors ~w~n", [Neighbors]),
@@ -106,6 +110,18 @@ eventLoop(Canvas, Board, Pos, SquareType) ->
         _ ->
             eventLoop(Canvas, Board, Pos, SquareType)
         end;
+
+    {jump, NewPos = {Row,Col}} ->
+        Cell = calcPos(Row, Col),
+        case element(Cell, Board) of
+        ?WALL ->
+            eventLoop(Canvas, Board, Pos, SquareType);
+        _ ->
+            NewBoard = updateCells(updateCells(Board, [Pos], ?VISITED), [NewPos], ?CURRENT),
+            changeDisplay(Canvas, Board, NewBoard),
+            eventLoop(Canvas, NewBoard, NewPos, SquareType)
+        end;
+
     {gs, save, click, _, _} ->
         FileName = gs:read(text,text),
         Start  = get(start),

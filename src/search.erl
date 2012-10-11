@@ -4,6 +4,7 @@
 -import(board, []).
 
 -define(WAIT, 500).
+-define(WALL,   1).
 
 %%%%%%%%%%%%%%%%%%%%%
 %% HELPERS
@@ -163,3 +164,89 @@ a_star() ->
 %%%%%%%%%%%%%%%%%%%%%
 %% Jump points
 %%%%%%%%%%%%%%%%%%%%%
+
+is_walkable(Board, X, Y) ->
+    Pos = board:calcPos(X, Y),
+    if
+    Pos == invalid -> false;
+    true ->
+        case element(Pos, Board) of
+        ?WALL ->
+            false;
+        _ ->
+            true
+        end
+    end.
+
+identify_successors(Node) ->
+    %%Neighbors = find_neighbors(Node),
+    implement.
+
+find_neighbors(Node) ->
+    implement.
+
+jump({X, Y, Px, Py}, Payload = {Board, {Ex, Ey}}) ->
+
+    Dx = X - Px,
+    Dy = Y - Py,
+
+    %% Simple cases
+    Wall = not is_walkable(Board, X, Y),
+    if
+    Wall ->
+        {};
+    (X == Ex) and (Ey == Ey) ->
+        {X, Y};
+
+    %% Check for forced neighbors
+    true ->
+        %% Moving along the diagonal
+        Diagonal = ((Dx /= 0) and (Dy /= 0)) and ((
+                        is_walkable(Board, X - Dx, Y + Dy) and not
+                        is_walkable(Board, X - Dx, Y)
+                    ) or (
+                        is_walkable(Board, X + Dx, Y - Dy) and not
+                        is_walkable(Board, X, Y - Dy)
+                    )),
+        %% Moving horizontally / vertically
+        %%  Moving along X axis
+        AlongX = Diagonal or ((Dx /= 0) and ((
+            is_walkable(Board, X + Dx, Y + 1) and not
+            is_walkable(Board, X, Y + 1)
+        ) or (
+            is_walkable(Board, X + Dx, Y - 1) and not
+            is_walkable(Board, X, Y - 1)
+        ))),
+        %%  Moving along Y axis
+        AlongY = AlongX or ((
+            is_walkable(Board, X + 1, Y + Dy) and not
+            is_walkable(Board, X + 1, Y)
+        ) or (
+            is_walkable(Board, X - 1, Y + Dy) and not
+            is_walkable(Board, X - 1, Y)
+        )),
+        if
+        Diagonal; AlongX; AlongY -> {X, Y};
+        true ->
+            %% Special cases with recursive jumps
+            %%  When moving diagonally, must check for vertical / horizontal
+            %%  jump points
+            if
+            (Dx /= 0) and (Dy /= 0) ->
+                Jx = jump({X + Dx, Y, X, Y}, Payload),
+                Jy = jump({X, Y + Dy, X, Y}, Payload),
+                if
+                (Jx /= {}) or (Jy /= {}) -> {X, Y};
+                true ->
+            %%  Moving diagonally, must make sure one of the vertical/horizontal
+            %%  neighbors is open to allow the path
+                    AllowPath = is_walkable(Board, X + Dx, Y) or
+                                is_walkable(Board, X, Y + Dy),
+                    if
+                        AllowPath -> jump({X + Dx, Y + Dy, X, Y}, Payload);
+                        true -> {}
+                    end
+                end
+            end
+        end
+    end.
