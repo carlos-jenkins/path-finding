@@ -190,7 +190,7 @@ jump_points() ->
             receive
                 Board ->
                 spawn(search, jump_points_proc, [
-                        [{Sx, Sy}], [0], [0], {Ex, Ey}, Board
+                        [{Sx, Sy}], [none], [0], [0], {Ex, Ey}, Board
                     ])
             end
         end
