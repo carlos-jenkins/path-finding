@@ -29,6 +29,12 @@ minimum(Min, [Head|Tail], Index, CIndex) ->
     end;
 minimum(Min, [], Index, _) -> {Min, Index}.
 
+%% Index of a element in a list
+index_of(Item, List) -> index_of(Item, List, 1).
+index_of(_, [], _)  -> not_found;
+index_of(Item, [Item|_], Index) -> Index;
+index_of(Item, [_|Tail], Index) -> index_of(Item, Tail, Index + 1).
+
 
 %%%%%%%%%%%%%%%%%%%%%
 %% GREEDY
@@ -165,6 +171,7 @@ a_star() ->
 %% Jump points
 %%%%%%%%%%%%%%%%%%%%%
 
+%% Check if a give coordinate is walkable
 is_walkable(Board, X, Y) ->
     Pos = board:calcPos(X, Y),
     if
@@ -217,6 +224,7 @@ jump_points_proc(OpenList, Parents, Gs, Fs, End = {Ex, Ey}, Board) ->
 %% Identify successors for the given node. Runs a jump point search in the
 %% direction of each available neighbor, adding any points found to the open
 %% list.
+%% @return {NewOL, NewPs, NewGs, NewFs} The context of the search.
 identify_successors(Node, Parent, Context, Payload = {Board, _}) ->
     Neighbors = find_neighbors(Node, Parent, Board),
     NewContext = identify_successors_aux(Node, Parent, Neighbors,
