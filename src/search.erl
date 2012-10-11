@@ -241,7 +241,7 @@ identify_successors(Node, Parent, Context, Payload = {Board, _}) ->
     Neighbors = find_neighbors(Node, Parent, Board),
     NewContext = identify_successors_aux(Node, Parent, Neighbors,
                                          Context, Payload,
-                                         0, length(Neighbors)),
+                                         1, length(Neighbors)),
     NewContext.
 
 identify_successors_aux(_, _, _, Context, _, Current, Stop)
@@ -380,7 +380,7 @@ jump({X, Y, Px, Py}, Payload = {Board, {Ex, Ey}}) ->
     Wall = not is_walkable(Board, X, Y),
     if
     Wall -> {};
-    (X == Ex) and (Ey == Ey) -> {X, Y};
+    ((X == Ex) and (Ey == Ey)) -> {X, Y};
 
     %% Check for forced neighbors
     true ->
