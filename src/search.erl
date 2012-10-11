@@ -224,10 +224,9 @@ identify_successors(Node, Parent, Context, Payload = {Board, _}) ->
                                          0, length(Neighbors)),
     NewContext.
 
-identify_successors_aux(_, _, _, {OpenList, Parents, Gs, Fs}, _, Current, Stop)
+identify_successors_aux(_, _, _, Context, _, Current, Stop)
         when Current == Stop ->
-    {OpenList, Parents, Gs, Fs};
-
+    Context;
 identify_successors_aux(Node = {X, Y}, Parent = {Px, Py}, Neighbors,
                         Context = {OpenList, Parents, Gs, Fs},
                         Payload = {Board, {Ex, Ey}},
