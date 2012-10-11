@@ -395,20 +395,20 @@ jump({X, Y, Px, Py}, Payload = {Board, {Ex, Ey}}) ->
         %% Moving horizontally / vertically
         %%  Moving along X axis
         AlongX = Diagonal or ((Dx /= 0) and ((
-            is_walkable(Board, X + Dx, Y + 1) and not
-            is_walkable(Board, X, Y + 1)
-        ) or (
-            is_walkable(Board, X + Dx, Y - 1) and not
-            is_walkable(Board, X, Y - 1)
-        ))),
+                        is_walkable(Board, X + Dx, Y + 1) and not
+                        is_walkable(Board, X, Y + 1)
+                    ) or (
+                        is_walkable(Board, X + Dx, Y - 1) and not
+                        is_walkable(Board, X, Y - 1)
+                    ))),
         %%  Moving along Y axis
         AlongY = AlongX or ((
-            is_walkable(Board, X + 1, Y + Dy) and not
-            is_walkable(Board, X + 1, Y)
-        ) or (
-            is_walkable(Board, X - 1, Y + Dy) and not
-            is_walkable(Board, X - 1, Y)
-        )),
+                        is_walkable(Board, X + 1, Y + Dy) and not
+                        is_walkable(Board, X + 1, Y)
+                    ) or (
+                        is_walkable(Board, X - 1, Y + Dy) and not
+                        is_walkable(Board, X - 1, Y)
+                    )),
         if
         Diagonal; AlongX; AlongY -> {X, Y};
         true ->
@@ -416,19 +416,19 @@ jump({X, Y, Px, Py}, Payload = {Board, {Ex, Ey}}) ->
             %%  When moving diagonally, must check for vertical / horizontal
             %%  jump points
             if
-            (Dx /= 0) and (Dy /= 0) ->
+            ((Dx /= 0) and (Dy /= 0)) ->
                 Jx = jump({X + Dx, Y, X, Y}, Payload),
                 Jy = jump({X, Y + Dy, X, Y}, Payload),
                 if
-                (Jx /= {}) or (Jy /= {}) -> {X, Y};
+                (Jx /= {}); (Jy /= {}) -> {X, Y};
                 true ->
             %%  Moving diagonally, must make sure one of the vertical/horizontal
             %%  neighbors is open to allow the path
                     AllowPath = is_walkable(Board, X + Dx, Y) or
                                 is_walkable(Board, X, Y + Dy),
                     if
-                        AllowPath -> jump({X + Dx, Y + Dy, X, Y}, Payload);
-                        true -> {}
+                    AllowPath -> jump({X + Dx, Y + Dy, X, Y}, Payload);
+                    true -> {}
                     end
                 end
             end
