@@ -12,7 +12,11 @@ Autores
 %Tabla de contenidos
 %%toc
 
-%tex% ''\newpage''
+%tex% '''
+%tex% \listoftables
+%tex% \listoffigures
+%tex% \newpage
+%tex% '''
 
 = Descripción del problema =[descripcion_del_problema]
 
@@ -58,19 +62,134 @@ generales y descripción de los algoritmos de búsqueda) y el análisis de resul
 
 
 
+
+%tex% ''' \newpage
+
 = Análisis de resultados =[analisis_de_resultados]
 
+El resumen de implementación de la presente tarea es el siguiente:
 
+%tex% ''' \begin{table}[H]
+||   Algoritmo   |  Implementado  |
+ |    Greedy     |       Si       |
+ |      A*       |       Si       |
+ |  Jump points  |       Si       |
+%tex% ''' \caption{Perspectiva del producto por desarrollar.}\end{table}
+
+Para las pruebas se utilizaron tres mapas generados por el equipo de trabajo. Dichos
+mapas de prueba pueden ser ubicados en el repositorio en:
+
+	``/tests/test*.map``
+
+Los tres mapas son crecientes en dificultad. A continuación se incluye una captura de pantalla
+de cada algoritmo corriendo en cada uno de los mapas de prueba.
+
+== Mapa1 ==[mapa1]
+
+
+
+=== Greedy en mapa 1 ===[greedy_en_mapa_1]
+
+%tex% ''' \begin{figure}[H]\begin{center}
+[450-test1_greedy.png]
+%tex% ''' \caption{Ejecución del algoritmo greedy en el mapa de prueba 1.}\end{center}\end{figure}
+
+=== A* en mapa 1 ===[a_en_mapa_1]
+
+%tex% ''' \begin{figure}[H]\begin{center}
+[450-test1_a_star.png]
+%tex% ''' \caption{Ejecución del algoritmo A* en el mapa de prueba 1.}\end{center}\end{figure}
+
+=== Jump points en mapa 1 ===[jump_points_en_mapa_1]
+
+%tex% ''' \begin{figure}[H]\begin{center}
+[450-test1_jump_points.png]
+%tex% ''' \caption{Ejecución del algoritmo Jump Points en el mapa de prueba 1.}\end{center}\end{figure}
+
+== Mapa2 ==[mapa2]
+
+
+
+=== Greedy en mapa 2 ===[greedy_en_mapa_2]
+
+%tex% ''' \begin{figure}[H]\begin{center}
+[450-test2_greedy.png]
+%tex% ''' \caption{Ejecución del algoritmo greedy en el mapa de prueba 2.}\end{center}\end{figure}
+
+=== A* en mapa 2 ===[a_en_mapa_2]
+
+%tex% ''' \begin{figure}[H]\begin{center}
+[450-test2_a_star.png]
+%tex% ''' \caption{Ejecución del algoritmo A* en el mapa de prueba 2.}\end{center}\end{figure}
+
+=== Jump points en mapa 2 ===[jump_points_en_mapa_2]
+
+%tex% ''' \begin{figure}[H]\begin{center}
+[450-test2_jump_points.png]
+%tex% ''' \caption{Ejecución del algoritmo Jump Points en el mapa de prueba 2.}\end{center}\end{figure}
+
+== Mapa3 ==[mapa3]
+
+
+
+=== Greedy en mapa 3 ===[greedy_en_mapa_3]
+
+%tex% ''' \begin{figure}[H]\begin{center}
+[450-test3_greedy.png]
+%tex% ''' \caption{Ejecución del algoritmo greedy en el mapa de prueba 3.}\end{center}\end{figure}
+
+=== A* en mapa 3 ===[a_en_mapa_3]
+
+%tex% ''' \begin{figure}[H]\begin{center}
+[450-test3_a_star.png]
+%tex% ''' \caption{Ejecución del algoritmo A* en el mapa de prueba 3.}\end{center}\end{figure}
+
+=== Jump points en mapa 3 ===[jump_points_en_mapa_3]
+
+%tex% ''' \begin{figure}[H]\begin{center}
+[450-test3_jump_points.png]
+%tex% ''' \caption{Ejecución del algoritmo Jump Points en el mapa de prueba 3.}\end{center}\end{figure}
+
+%tex% ''' \newpage
 
 = Conclusiones =[conclusiones]
 
+- El algoritmo Greedy es el segundo más rápido y es siempre encuentra la ruta, sin embargo, la ruta encontrada
+  no es necesariamente la óptima. En la figura 1 del análisis de resultados se puede observar cómo el Greedy
+  encuentra una ruta rápidamente pero ésta no es la óptima (la óptima sería irse por la apertura superior).
 
+- El algoritmo Greedy necesita recordar todo el //Fringe// de la búsqueda para poder hacer el backtracking, lo 
+  que implica un //memory overhead// importante para problemas grandes.
+
+- El algoritmo A* es el más lento de todos, sin embargo garantiza que la ruta encontrada sea la óptima. Como se
+  puede observar en la figura 2, 5 y 8 el A* encuentra la ruta óptima pero al costo de una búsqueda más intensa.
+
+- Al algoritmo A*, al igual que el Greedy tiene un //memory overhead// importante en problemas grandes pues también
+  requiere recordar el //Fringe// de todo el recorrido.
+
+- El algoritmo Jump Points es el más rápido y eficiente, sin embargo es el de mayor complejidad y requiere una lógica
+  mucho más compleja. Al ser muy reciente (publicado en 2011) existen pocos artículos, implementaciones, tutoriales
+  o explicaciones en relación a los dos anteriores, lo que dificulta la comprensión e implementación.
+
+- El algoritmo Jump Points, a diferencia del Greedy y el A* no tiene un //memory overhead// importante pues no requiere
+  recordar todo el //Fringe// y lo que requiere recordar es la lista de nodos de salto abiertos y los cerrados, lo cual 
+  es mínimo en comparación con la cantidad de nodos del //Fringe//.
+
+- El algoritmo Jump Points al igual que el A* garantiza encontrar la ruta óptima y en menos tiempo (según el artículo hasta
+  10 veces mas rápido).
+
+- Sin embargo, el algoritmo Jump Points sólo funciona en tableros (//grids//) uniformes de costo no variable entre saltos o
+  casillas y bidireccionales, a diferencia del Greedy y del A* que funcionan en contexto de grafos dirigidos y de peso de
+  los arcos variable.
+
+
+%tex% ''' \newpage
 
 = Referencias =[referencias]
 
 - Harabor D. and Grastien A. (2011). //Online graph pruning for pathfinding on grid maps//. 
   In Proceedings of the 25th National Conference on Artificial Intelligence (AAAI), San Francisco, USA.
-- Xueqiao, X. (2011). //A comprehensive path-finding library in javascript//. 
+- Xueqiao, X. (2011). //A comprehensive path-finding library in javascript//. @@
   Retrieved from https://github.com/qiao/PathFinding.js
 
 
