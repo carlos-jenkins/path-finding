@@ -251,7 +251,6 @@ identify_successors_aux(Node = {X, Y}, Parent = {Px, Py}, Neighbors,
     if
     JumpPoint /= {} ->
         {Jx, Jy} = JumpPoint,
-        %% FIXME IMPLEMENT
         JumpPointClosed = lists:member({Jx,Jy}, Closed),
         if
 			JumpPointClosed -> identify_successors_aux(Node, Parent, Neighbors,
@@ -292,13 +291,6 @@ identify_successors_aux(Node = {X, Y}, Parent = {Px, Py}, Neighbors,
                                 Current + 1, Stop, NewOpened, Closed)
                  end
         end;
-						
-        
-        %%{NewOL, NewPs, NewGs, NewFs} = Context,
-        %% FIXME
-        %%identify_successors_aux(Node, Parent, Neighbors,
-        %%                        {NewOL, NewPs, NewGs, NewFs}, Payload,
-        %%                       Current + 1, Stop);
     true ->
         identify_successors_aux(Node, Parent, Neighbors,
                                 Context, Payload,

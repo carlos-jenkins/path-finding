@@ -184,6 +184,7 @@ is_walkable(Board, X, Y) ->
     if
     Pos == invalid -> false;
     true ->
+		io:format("~p~n", [Pos]),
         case element(Pos, Board) of
         ?WALL ->
             false;
@@ -219,16 +220,21 @@ jump_points_proc(OpenList, Parents, Gs, Fs, Opened, Closed, End = {Ex, Ey}, Boar
     {Nx, Ny} = lists:nth(Min, OpenList),
     Parent   = lists:nth(Min, Parents),
     NewCl    = lists:append(Closed, [{Nx, Ny}]),
+    G_nodo = lists:nth(Min, Gs),
+    OpL = delete_nth(Min, OpenList),
+    Par = delete_nth(Min, Parents),
+    NGs = delete_nth(Min, Gs),
+    NFs = delete_nth(Min, Fs),
     if
     ((Nx == Ex) and (Ny == Ey)) ->
         io:format("Destination found.~n"),
         found;
     true ->
         {NewOL, NewPs, NewGs, NewFs, NewOp, _} = identify_successors(
-                                {Nx, Ny}, Parent,
-                                {OpenList, Parents, Gs, Fs, Opened, NewCl},
+                                {Nx, Ny}, G_nodo, Parent,
+                                {OpL, Par, NGs, NFs, Opened, NewCl},
                                 {Board, {Ex, Ey}}),
-        jump_points_proc(
+       jump_points_proc(
             NewOL, NewPs, NewGs, NewFs, NewOp, NewCl,
             End, Board)
     end.
@@ -237,73 +243,73 @@ jump_points_proc(OpenList, Parents, Gs, Fs, Opened, Closed, End = {Ex, Ey}, Boar
 %% direction of each available neighbor, adding any points found to the open
 %% list.
 %% @return {NewOL, NewPs, NewGs, NewFs} The context of the search.
-identify_successors(Node, Parent, Context, Payload = {Board, _}) ->
+identify_successors(Node, G_node, Parent, Context, Payload = {Board, _}) ->
     Neighbors = find_neighbors(Node, Parent, Board),
-    NewContext = identify_successors_aux(Node, Parent, Neighbors,
+    NewContext = identify_successors_aux(Node, G_node, Parent, Neighbors,
                                          Context, Payload,
-                                         1, length(Neighbors)),
+                                         1, length(Neighbors)+1),
     NewContext.
 
-identify_successors_aux(_, _, _, Context, _, Current, Stop)
+identify_successors_aux(_, _, _, _, Context, _, Current, Stop)
         when Current == Stop ->
     Context;
-identify_successors_aux(Node = {X, Y}, Parent, Neighbors,
+identify_successors_aux(Node = {X, Y}, G_node, Parent, Neighbors,
                         Context = {OpenList, Parents, Gs, Fs, Opened, Closed},
                         Payload = {_, {Ex, Ey}},
                         Current, Stop) ->
 
-    {Nx, Ny} = lists:nth(Current, Neighbors),
-    JumpPoint = jump({Nx, Ny, X, Y}, Payload),
-    if
-    JumpPoint /= {} ->
-        {Jx, Jy} = JumpPoint,
-        JumpPointClosed = lists:member({Jx, Jy}, Closed),
-        if
-        JumpPointClosed ->
-            identify_successors_aux(Node, Parent, Neighbors,
-                                    Context, Payload,
-                                    Current + 1, Stop);
-        true ->
-            Dist = math:sqrt((Nx - X) * (Nx - X) + (Ny - Y) * (Ny - Y)),
-            Index = index_of(Node, OpenList),
-            Newg = lists:nth(Index, Gs) + Dist,
-            JumpPointOpened = lists:member({Jx,Jy}, Opened),
-            if
-            JumpPointOpened ->
-                IndexJP = index_of({Jx, Jy}, OpenList),
-                JPg = lists:nth(IndexJP, Gs),
-                if
-                Newg < JPg ->
-                    Newf = Newg + math:sqrt((Nx - Ex) * (Nx - Ex) + (Ny - Ey) * (Ny - Ey)),
-                    NewOL = lists:append(delete_nth(IndexJP, OpenList),[{Jx, Jy}]),
-                    NewPs = lists:append(delete_nth(IndexJP, Parents),[{X, Y}]),
-                    NewGs = lists:append(delete_nth(IndexJP, Gs), [Newg]),
-                    NewFs = lists:append(delete_nth(IndexJP, Fs), [Newf]),
-                    identify_successors_aux(Node, Parent, Neighbors,
-                                           {NewOL, NewPs, NewGs, NewFs},
-                                            Payload, Current + 1, Stop);
-                true -> identify_successors_aux(Node, Parent, Neighbors,
-                                                Context, Payload,
-                                                Current + 1, Stop)
-                end;
-            true ->
-                Newf = Newg + math:sqrt((Nx - Ex) * (Nx - Ex) + (Ny - Ey) * (Ny - Ey)),
-                NewOL = lists:append(OpenList,[{Jx,Jy}]),
-                NewPs = lists:append(Parents,[{X,Y}]),
-                NewGs = lists:append(Gs,[Newg]),
-                NewFs = lists:append(Fs,[Newf]),
-                NewOpened = lists:append(Opened,[{Jx,Jy}]),
-                identify_successors_aux(Node, Parent, Neighbors,
-                        {NewOL, NewPs, NewGs, NewFs, NewOpened, Closed},
-                        Payload, Current + 1, Stop)
-            end
-        end;
-
-    true ->
-        identify_successors_aux(Node, Parent, Neighbors,
-                                Context, Payload,
-                                Current + 1, Stop)
-    end.
+	{Nx, Ny} = lists:nth(Current, Neighbors),
+	JumpPoint = jump({Nx, Ny, X, Y}, Payload),
+	io:format("~p~n", [{Nx,Ny}]),
+	wait(?WAIT),
+	if
+	JumpPoint /= {} ->
+		{Jx, Jy} = JumpPoint,
+		JumpPointClosed = lists:member({Jx, Jy}, Closed),
+		if
+		JumpPointClosed ->
+			identify_successors_aux(Node, G_node, Parent, Neighbors,
+									Context, Payload,
+									Current + 1, Stop);
+		true ->
+			Dist = math:sqrt((Nx - X) * (Nx - X) + (Ny - Y) * (Ny - Y)),
+			Newg = G_node + Dist,
+			JumpPointOpened = lists:member({Jx,Jy}, Opened),
+			if
+			JumpPointOpened ->
+				IndexJP = index_of({Jx, Jy}, OpenList),
+				JPg = lists:nth(IndexJP, Gs),
+				if
+				Newg < JPg ->
+					Newf = Newg + math:sqrt((Nx - Ex) * (Nx - Ex) + (Ny - Ey) * (Ny - Ey)),
+					NewOL = lists:append(delete_nth(IndexJP, OpenList),[{Jx, Jy}]),
+					NewPs = lists:append(delete_nth(IndexJP, Parents),[{X, Y}]),
+					NewGs = lists:append(delete_nth(IndexJP, Gs), [Newg]),
+					NewFs = lists:append(delete_nth(IndexJP, Fs), [Newf]),
+					identify_successors_aux(Node, G_node, Parent, Neighbors,
+											{NewOL, NewPs, NewGs, NewFs},
+											Payload, Current + 1, Stop);
+				true -> identify_successors_aux(Node, G_node, Parent, Neighbors,
+												Context, Payload,
+												Current + 1, Stop)
+				end;
+			true ->
+				Newf = Newg + math:sqrt((Nx - Ex) * (Nx - Ex) + (Ny - Ey) * (Ny - Ey)),
+				NewOL = lists:append(OpenList,[{Jx,Jy}]),
+				NewPs = lists:append(Parents,[{X,Y}]),
+				NewGs = lists:append(Gs,[Newg]),
+				NewFs = lists:append(Fs,[Newf]),
+				NewOpened = lists:append(Opened,[{Jx,Jy}]),
+				identify_successors_aux(Node, G_node, Parent, Neighbors,
+						{NewOL, NewPs, NewGs, NewFs, NewOpened, Closed},
+						Payload, Current + 1, Stop)
+			end
+		end;
+	true ->
+		identify_successors_aux(Node, G_node, Parent, Neighbors,
+								Context, Payload,
+								Current + 1, Stop)
+	end.
 
 %% Find the neighbors for the given node. If the node has a parent,
 %% prune the neighbors based on the jump point search algorithm, otherwise
@@ -380,7 +386,7 @@ jump({X, Y, Px, Py}, Payload = {Board, {Ex, Ey}}) ->
     Wall = not is_walkable(Board, X, Y),
     if
     Wall -> {};
-    ((X == Ex) and (Ey == Ey)) -> {X, Y};
+    ((X == Ex) and (Y == Ey)) -> {X, Y};
 
     %% Check for forced neighbors
     true ->
