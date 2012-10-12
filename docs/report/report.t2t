@@ -285,24 +285,57 @@ a partir del mismo nodo por el que llego a ese camino, selecciona un nuevo camin
 
 **Función ``jump_points()``:**
 
-Ésta función crea un nuevo proceso (``spawn``) que ejecutará el algoritmo JumpPoints. 
+Ésta función crea un nuevo proceso (``spawn``) que ejecutará el algoritmo JumpPoints. Parámetros: 
+
+- ninguno.
+
 
 **Función ``jump_points_proc(OpenList, Parents, Gs, Fs, Opened, Closed, End = {Ex, Ey}, Board)``:**
 
-Función principal del proceso que intenta encontrar la ruta utilizando el algoritmo JumpPoints.
+Función principal del proceso que intenta encontrar la ruta utilizando el algoritmo JumpPoints. Parámetros: 
+
+- ``OpenList`` lista de las coordenadas de los nodos JumpPoints para el presente nodo.
+- ``Parents`` lista de los nodos padre para cada nodo en la OpenList.
+- ``Gs`` lista de heurísticas asociada a cada nodo en la OpenList.
+- ``Fs`` lista de distancias asociada a cada nodo en la OpenList.
+- ``Opened`` lista con las coordenadas de los nodos JumpPoints.
+- ``Closed`` lista con las coordenadas de los nodos ya visitados.
+- ``End`` tupla con las coordenadas del nodo destino.
+- ``Board`` vector que representa la cuadrícula sobre la cual se corre el algoritmo.
+
 
 **Función ``identify_successors(Node, NodeG, Parent, Context, Payload = {Board, _})``:**
 
-Función que identifica el siguiente sucesor de un punto o nodo dado.
+Función que identifica el siguiente sucesor de un punto o nodo dado. Parámetros: 
+
+- ``Node`` nodo para buscar expandir.
+- ``NodeG`` heurística del nodo.
+- ``Parent`` tupla con las coordenadas del padre del nodo a expandir.
+- ``Context`` tupla de 6 entradas con el contexto de la búsqueda ``{OpenList, Parents, Gs, Fs, Opened, Closed}``.
+  Ver la función ``jump_points_proc(...)`` para una descripción de cada uno de éstos.
+- ``Payload`` una tupla con los datos estáticos requeridos por los algoritmos ``{Board, End}``, la cuadrícula
+  y una tupla //End// con las coordenadas del nodo destino.
+
 
 **Función ``find_neighbors({X, Y}, {Px, Py}, Board)``:**
 
 Ésta función es el //prunning// descrito en el artículo y permite identificar de todos los vecinos
-de un nodo cuales deben expandirse.
+de un nodo cuales deben expandirse. Parámetros: 
+
+- ``{X, Y}`` tupla con las coordenadas del nodo actual.
+- ``{Px, Py}`` tupla con las coordenadas del padre del nodo actual.
+- ``Board`` vector que representa la cuadrícula del problema.
+
 
 **Función ``jump({X, Y, Px, Py}, Payload = {Board, {Ex, Ey}})``:**
 
-Ésta función encuentra los puntos de salto o //JumpPoints// según se describe en el artículo. 
+Ésta función encuentra los puntos de salto o //JumpPoints// según se describe en el artículo. Parámetros: 
+
+- ``{X, Y, Px, Px}`` tupla con las coordenadas del nodo y su padre. Ver función anterior para una descripción
+  más detallada de cada uno.
+- ``Payload`` una tupla con los datos estáticos requeridos por los algoritmos ``{Board, End}``, la cuadrícula
+  y una tupla //End// con las coordenadas del nodo destino.
+
 
 %tex% ''' \newpage
 
