@@ -1,0 +1,41 @@
+\usepackage[top=3cm, bottom=3cm, left=3cm, right=3cm]{geometry}
+\usepackage[spanish]{babel}
+\usepackage{float} % To fix images position
+
+% Prettify code documentation
+\usepackage{color}
+\definecolor{gray97}{gray}{.97}
+\definecolor{gray75}{gray}{.75}
+\definecolor{gray45}{gray}{.45}
+\lstset{ frame=Ltb,
+     framerule=0pt,
+     aboveskip=0.5cm,
+     framextopmargin=3pt,
+     framexbottommargin=3pt,
+     framexleftmargin=0.4cm,
+     framesep=0pt,
+     rulesep=.4pt,
+     backgroundcolor=\color{gray97},
+     rulesepcolor=\color{black},
+     %
+     stringstyle=\ttfamily,
+     showstringspaces = false,
+     basicstyle=\small\ttfamily,
+     commentstyle=\color{gray45},
+     keywordstyle=\bfseries,
+     %
+     numbers=left,
+     numbersep=15pt,
+     numberstyle=\tiny,
+     numberfirstline = false,
+     breaklines=true,
+     xleftmargin=20px,
+   }
+
+% Spacing
+\addtolength{\parskip}{\baselineskip} % Paragraph spacing
+\linespread{1.15} % Lines spacing
+\setlength{\plitemsep}{0.5\baselineskip} % List items spacing
+\definecolor{deepblue}{RGB}{0,0,61}
+\hypersetup{linkcolor=deepblue,}
+

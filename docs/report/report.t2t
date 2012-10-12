@@ -1,0 +1,60 @@
+Título del documento
+Autores
+%%date(%B, %Y)
+
+%!target: tex
+%!style(xhtmls): media/themes/Clean/style.css
+%!options(tex): --enum-title --toc --toc-level 5
+%!nested(tex): --docclass {article} --pdf
+
+%S = Tabla de contenidos =[tabla_de_contenidos]
+
+%Tabla de contenidos
+%%toc
+
+%tex% ''\newpage''
+
+= Descripción del problema =[descripcion_del_problema]
+
+
+
+= Descripción de la solución =[descripcion_de_la_solucion]
+
+
+
+== Modificaciones al servidor gráfico ==[modificaciones_al_servidor_grafico]
+
+
+
+== Funciones de utilidad general ==[funciones_de_utilidad_general]
+
+
+
+== Descripción de algoritmos ==[descripcion_de_algoritmos]
+
+
+
+=== Greedy ===[greedy]
+
+
+
+=== A* ===[a]
+
+
+
+=== Jump Points ===[jump_points]
+
+
+
+= Análisis de resultados =[analisis_de_resultados]
+
+
+
+= Conclusiones =[conclusiones]
+
+
+
+= Referencias =[referencias]
+
+
+
