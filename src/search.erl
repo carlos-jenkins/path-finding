@@ -3,7 +3,7 @@
 
 -import(board, []).
 
--define(WAIT, 500).
+-define(WAIT, 150).
 -define(WALL,   1).
 
 %%%%%%%%%%%%%%%%%%%%%
@@ -189,7 +189,6 @@ is_walkable(Board, X, Y) ->
     if
     Pos == invalid -> false;
     true ->
-        io:format("Position is: ~p.~n", [Pos]),
         case element(Pos, Board) of
         ?WALL ->
             false;
@@ -219,6 +218,7 @@ jump_points() ->
 
 %% Jump Points process
 jump_points_proc([], _, _, _, _, _, _, _) ->
+    io:format("Unable to find a path.~n"),
     fail;
 jump_points_proc(OpenList, Parents, Gs, Fs, Opened, Closed, End = {Ex, Ey}, Board) ->
 
@@ -237,6 +237,8 @@ jump_points_proc(OpenList, Parents, Gs, Fs, Opened, Closed, End = {Ex, Ey}, Boar
     if
     ((Nx == Ex) and (Ny == Ey)) ->
         io:format("Destination found.~n"),
+        io:format("Parents are: ~w.~n", [Parents]),
+        board ! {jump, {Ex, Ey}},
         found;
     true ->
         {ModOL, ModPs, ModGs, ModFs, ModOp, _} = identify_successors(
@@ -301,7 +303,7 @@ identify_successors_aux(Node = {X, Y}, NodeG, Parent, Neighbors,
                     NewGs = lists:append(delete_nth(IndexJP, Gs), [Newg]),
                     NewFs = lists:append(delete_nth(IndexJP, Fs), [Newf]),
                     identify_successors_aux(Node, NodeG, Parent, Neighbors,
-                                            {NewOL, NewPs, NewGs, NewFs},
+                                            {NewOL, NewPs, NewGs, NewFs, Opened, Closed},
                                             Payload, Next, Stop);
                 %% Opened, but don't requires updates, continue
                 true ->
