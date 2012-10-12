@@ -285,7 +285,7 @@ identify_successors_aux(Node = {X, Y}, NodeG, Parent, Neighbors,
                                     Next, Stop);
         true ->
             Dist = euclidean(abs(Jx - X), abs(Jy - Y)),
-            Newg = lists:nth(index_of(Node, OpenList), Gs) + Dist,
+            Newg = NodeG + Dist,
             JumpPointOpened = lists:member({Jx, Jy}, Opened),
             if
             %% Already opened, requires updates
