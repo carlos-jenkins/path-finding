@@ -98,26 +98,211 @@ neighbors(Board,Cell={R,C},[{OR,OC}|Rest]) ->
     end.
 }}}
 
+%tex% ''' \newpage
+
 == Funciones de utilidad general ==[funciones_de_utilidad_general]
 
+Éstas funciones son funciones de utilidad general que se implementaron para el buen funcionamiento de los algoritmos.
 
+**Función ``wait:``**
+
+Ésta función realiza una espera de ``Mill`` milisegundos antes de continuar en la ejecución. Parámetros: 
+
+- ``Mill`` milisegundos, es un valor entero.
+
+
+//Código://
+
+{{{ erlang
+wait(Mill) ->
+    receive
+    after Mill -> ok
+    end.
+}}}
+
+**Función ``minimum``:**
+
+Ésta función se encarga de obtener una tupla con el valor mínimo y la posición del mismo una lista de números. Parámetros: 
+
+- ``[Head|Tail]`` es una lista no vacía de valores numéricos.
+
+
+//Código://
+
+{{{ erlang
+minimum([]) -> error;
+minimum([Min]) -> {Min, 1};
+minimum([Head|Tail]) -> minimum(Head, Tail, 1, 2).
+minimum(Min, [Head|Tail], Index, CIndex) ->
+    if
+        Head < Min ->
+            minimum(Head, Tail, CIndex, CIndex + 1);
+        true ->
+            minimum(Min, Tail, Index, CIndex + 1)
+    end;
+minimum(Min, [], Index, _) -> {Min, Index}.
+}}}
+
+**Función ``index_of``:**
+
+Esta función se encarga de obtener el índice en el que se encuentra un elemento en una lista dada, 
+o en caso de no encontrarse, devuelve que no lo encontró. Parámetros: 
+
+- ``Item`` el elemento que va a buscar en la lista.
+- ``List`` la lista en la que va a buscar el elemento.
+
+
+//Código://
+
+{{{ erlang
+index_of(Item, List) -> index_of(Item, List, 1).
+index_of(_, [], _) -> not_found;
+index_of(Item, [Item|_], Index) -> Index;
+index_of(Item, [_|Tail], Index) -> index_of(Item, Tail, Index + 1).
+}}}
+
+**Función ``delete_nth``:**
+
+Esta función se encarga de eliminar el valor de una lista que se encuentra en la posición dada. En caso de 
+que la posición solicitada sea mayor al largo de la lista, retorna que no encontró la posición. Parámetros: 
+
+- ``Pos`` la posición en la lista que se desea eliminar.
+- ``[H|T]`` la lista en la cual de desea eliminar el elemento.
+
+
+//Código://
+
+{{{ erlang
+delete_nth(_,[]) -> not_found;
+delete_nth(Pos,[H|T]) ->
+    if
+        Pos == 1 -> T;
+        true -> lists:append([H], delete_nth(Pos - 1, T))
+    end.
+}}}
+
+**Función ``euclidean``:**
+
+Esta función se encarga de obtener la distancia euclidiana que hay entre la diferencia de dos puntos. Parámetros: 
+
+- ``Dx`` es la diferencia de los valores de X de los dos puntos.
+- ``Dy`` es la diferencia de los valores de Y de los dos puntos.
+
+
+//Código://
+
+{{{ erlang
+euclidean(Dx, Dy) ->
+    math:sqrt((Dx * Dx) + (Dy * Dy)).
+}}}
 
 == Descripción de algoritmos ==[descripcion_de_algoritmos]
 
-
+A continuación se describe el funcionamiento básico y la estructura de los algoritmos implementados.
 
 === Greedy ===[greedy]
 
+El algoritmo Greedy consiste en realizar la búsqueda, en el tablero, bajo el objetivo de buscar la menor distancia 
+desde donde estoy parado hasta el objetivo. Este algoritmo se implemento en dos funciones, una que obtiene los datos 
+necesarios para el procedimiento y la otra que realiza el procedimiento.
 
+**Función ``greedy()``:**
+
+Esta es la función con la que se preparan las estructuras necesarias y se llama al procedimiento. Para llamar al 
+procedimiento es necesario el llevar el punto final al que se desea llegar y dos listas vacías, estas para poder 
+realizar un backtracking. Parámetros: 
+
+- ninguno.
+
+
+**Función ``greedy_proc({Fi, Fj}, {FringeCell, FringeHeu})``:**
+
+Esta es la función encargada de realizar la logística del procedimiento. Lo primero que hace es ver la posición en la 
+que se encuentra, esto para verificar si ya se encuentra en la posición final. Si no se encuentra en la posición final 
+solicita los vecinos, a los cuales se pueda mover, de la posición en la que se encuentra. Con estos vecinos, busca cual 
+de ellos posee la menor heurística, valor por el cual se guía, para avanzar hacia esa posición. En caso de no obtener 
+vecinos, revisa en las lista de ``FringeCell`` y ``FringeHeu`` para encontrar otra posibilidad de camino, en caso de 
+que estas listas se encuentren vacías retorna que no es posible encontrar un camino valido. Parámetros: 
+
+- ``{Fi, Fj}`` punto objetivo.
+- ``FringeCell`` lista de puntos en el tablero a los cuales es posible visitarse.
+- ``FringeHeu`` lista de las heurísticas de los nodos en la lista ``FringeCell`` en su mismo orden.
+
+
+%tex% ''' \newpage
 
 === A* ===[a]
 
+El algoritmo A* consiste en realizar la búsqueda, en el tablero, bajo el objetivo de buscar la menor distancia 
+desde el inicio de la búsqueda hasta el objetivo. Este algoritmo se implemento en tres funciones, una que obtiene 
+los datos necesarios para el procedimiento, la segunda que calcula la distancia desde el inicio al nodo actual y 
+después del nodo actual al final y la otra que realiza el procedimiento.
 
+**Función ``a_star()``:**
+
+Ésta es la función con la que se preparan las estructuras necesarias y se llama al procedimiento. Para llamar al 
+procedimiento es necesario el llevar el punto inicial del algoritmo, el punto final al que se desea llegar y dos 
+listas vacías, éstas para poder realizar un backtracking. Parámetros: 
+
+- ninguno.
+
+
+**Función ``a_star_logic([F|R], [{Pi, Pj}|RC], {Si, Sj})``:**
+
+Esta función calcula la distancia del punto inicio al punto final, pasando por el punto donde me encuentro. Parámetros: 
+
+- ``[F|R]`` lista con la distancias de los vecinos al punto al final (heurísticas).
+- ``[{Pi, Pj}|RC]`` lista de vecinos en mismo orden que ``[F|R]``.
+- ``{Si, Sj}`` punto de inicio para calculo de distancia del nodo al punto inicial.
+
+
+**Función ``a_star_proc({Si, Sj}, {Fi, Fj}, {FringeCell, FringeHeu})``:**
+
+Ésta función es encargada de realizar la logística del procedimiento. Lo primero que hace es ver la posición en la que 
+se encuentra, esto para verificar si ya se encuentra en la posición final. Si no se encuentra en la posición final 
+solicita los vecinos, a los cuales se pueda mover, de la posición en la que se encuentra. Con estos vecinos, los agrega
+a las listas ``FringeCell`` y ``FringeHeu`` y después busca cual elemento del ``FringeHeu`` posee la menor distancia del 
+inicio al final pasando a través del mismo para avanzar hacia esa posición. En caso de no obtener vecinos, revisa en las 
+lista de ``FringeCell`` y ``FringeHeu`` para encontrar otra posibilidad de camino, en caso de que estas listas se encuentren 
+vacías retorna que no es posible encontrar un camino valido. Parámetros: 
+
+- ``{Si, Sj}`` punto de inicio.
+- ``{Fi, Fj}`` punto objetivo.
+- ``FringeCell`` lista de puntos en el tablero a los cuales es posible visitarse.
+- ``FringeHeu`` lista de las distancias del inicio al final a través del punto de los nodos en la lista 
+  ``FringeCell`` en su mismo orden.
+
+
+%tex% ''' \newpage
 
 === Jump Points ===[jump_points]
 
+Este algoritmos consiste en a partir de un nodo tomar una dirección y continuar por esta hasta encontrar el fin, 
+no encontrar nada y salirse de la cuadricula o encontrar un //JumpPoint//. En caso de encontrar el final devuelve 
+que encontró el objetivo, en caso de no encontrar nada, avisa que ese camino es inválido. En caso de encontrar 
+//JumpPoint//, vuelve a realizar este algoritmo con dicho //JumpPoint//. En caso de encontrar un camino invalido, 
+a partir del mismo nodo por el que llego a ese camino, selecciona un nuevo camino y continua por ese.
 
+**Función ``jump_points()``:**
 
+Ésta función crea un nuevo proceso (``spawn``) que ejecutará el algoritmo JumpPoints. 
+
+**Función ``jump_points_proc(OpenList, Parents, Gs, Fs, Opened, Closed, End = {Ex, Ey}, Board)``:**
+
+Función principal del proceso que intenta encontrar la ruta utilizando el algoritmo JumpPoints.
+
+**Función ``identify_successors(Node, NodeG, Parent, Context, Payload = {Board, _})``:**
+
+Función que identifica el siguiente sucesor de un punto o nodo dado.
+
+**Función ``find_neighbors({X, Y}, {Px, Py}, Board)``:**
+
+Ésta función es el //prunning// descrito en el artículo y permite identificar de todos los vecinos
+de un nodo cuales deben expandirse.
+
+**Función ``jump({X, Y, Px, Py}, Payload = {Board, {Ex, Ey}})``:**
+
+Ésta función encuentra los puntos de salto o //JumpPoints// según se describe en el artículo. 
 
 %tex% ''' \newpage
 
