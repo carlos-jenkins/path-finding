@@ -276,6 +276,7 @@ identify_successors_aux(Node = {X, Y}, NodeG, Parent, Neighbors,
     if
     JumpPoint /= {} ->
         {Jx, Jy} = JumpPoint,
+        board ! {jump, {Jx, Jy}},
         JumpPointClosed = lists:member({Jx, Jy}, Closed),
         if
         JumpPointClosed ->
@@ -338,8 +339,8 @@ find_neighbors(Pos, none, Board) ->
 
 find_neighbors({X, Y}, {Px, Py}, Board) ->
     %% Get the normalized direction of travel
-    Dx = (X - Px) / max(abs(X - Px), 1),
-    Dy = (Y - Py) / max(abs(Y - Py), 1),
+    Dx = trunc((X - Px) / max(abs(X - Px), 1)),
+    Dy = trunc((Y - Py) / max(abs(Y - Py), 1)),
     find_neighbors_aux({X, Y, Dx, Dy}, Board).
 
 %% Search diagonally
