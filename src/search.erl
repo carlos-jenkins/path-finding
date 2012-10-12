@@ -237,7 +237,6 @@ jump_points_proc(OpenList, Parents, Gs, Fs, Opened, Closed, End = {Ex, Ey}, Boar
     if
     ((Nx == Ex) and (Ny == Ey)) ->
         io:format("Destination found.~n"),
-        io:format("Parents are: ~w.~n", [Parents]),
         board ! {jump, {Ex, Ey}},
         found;
     true ->
