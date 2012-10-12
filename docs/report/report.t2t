@@ -4,6 +4,7 @@ Autores
 
 %!target: tex
 %!style(xhtmls): media/themes/Clean/style.css
+%!nested(xhtmls): --libs syntaxhighlighter
 %!options(tex): --enum-title --toc --toc-level 5
 %!nested(tex): --docclass {article} --pdf
 
@@ -40,7 +41,62 @@ generales y descripción de los algoritmos de búsqueda) y el análisis de resul
 
 == Modificaciones al servidor gráfico ==[modificaciones_al_servidor_grafico]
 
+Para el presente proyecto se utilizó una cuadrícula gráfica desarrollada por el profesor en el archivo ``board.erl``.
+El API de dicha cuadrícula está presente en la especificación del proyecto y consiste en:
 
+	``> board:start().``
+
+Que inicia la interfaz gráfica y permite configurar el entorno, en particular guardar y salvar archivos.
+
+	``> board ! {get_pos, self()}.``
+
+Se obtiene la posición del agente en un tupla ``{X, Y}``.
+
+	``> board ! {move, {X, Y}}.``
+
+Mueve el agente a la posición ``{X, Y}``. Dicha posición debe estar en el //Fringe// del algoritmo. Útil para los
+algoritmos Greedy y A* pero no para el Jump Points.
+
+	``> board ! {get_neigbors, self()}.``
+
+Obtiene los vecinos del nodo actual en el que se ubica el agente. Devuelve una tupla de dos listas, la primera
+contiene las tuplas de los vecinos y la segunda la heurística euclidiana asociada a cada uno. Es de la forma:
+
+	``{[{X1, Y1}, {X2, Y2}], [0.1, 0.2]}``
+
+Para poder implementar los algoritmos del presente proyecto se agregaron dos llamadas al servidor gráfico:
+
+	``> board ! {jump, {X, Y}}.``
+
+Mueve al agente a la posición ``{X, Y}``. La posición no necesariamente debe estar en el //Fringe//. Es utilizada
+por el algoritmo Jump Points.
+
+	``> board ! {get_finish, self()}.``
+
+Obtiene una tupla ``{X, Y}`` con la posición del destino. Es utilizado por todos los algoritmos para saber cuando
+deben terminar.
+
+Además, se tuvo que modificar la función de la cuadrícula ``neighbors()`` para que devolviera el punto de finalización
+en los vecinos, pues anteriormente lo excluía lo que dificultaba los algoritmos Greedy y A* para saber cuando han llegado
+al destino. La función modificada quedó de la siguiente forma:
+
+{{{ erlang
+neighbors(_,_,[]) -> [];
+neighbors(Board,Cell={R,C},[{OR,OC}|Rest]) ->
+    Pos = calcPos(R+OR,C+OC),
+    if
+    Pos == invalid -> neighbors(Board, Cell, Rest);
+    true ->
+        case element(Pos, Board) of
+        ?EMPTY ->
+            [{R+OR,C+OC}|neighbors(Board, Cell, Rest)];
+        ?FINISH ->
+            [{R+OR,C+OC}|neighbors(Board, Cell, Rest)];
+        _ ->
+            neighbors(Board, Cell, Rest)
+        end
+    end.
+}}}
 
 == Funciones de utilidad general ==[funciones_de_utilidad_general]
 
@@ -154,7 +210,7 @@ de cada algoritmo corriendo en cada uno de los mapas de prueba.
 
 = Conclusiones =[conclusiones]
 
-- El algoritmo Greedy es el segundo más rápido y es siempre encuentra la ruta, sin embargo, la ruta encontrada
+- El algoritmo Greedy es el segundo más rápido y es siempre encuentra una ruta, sin embargo, la ruta encontrada
   no es necesariamente la óptima. En la figura 1 del análisis de resultados se puede observar cómo el Greedy
   encuentra una ruta rápidamente pero ésta no es la óptima (la óptima sería irse por la apertura superior).
 
@@ -180,7 +236,7 @@ de cada algoritmo corriendo en cada uno de los mapas de prueba.
 
 - Sin embargo, el algoritmo Jump Points sólo funciona en tableros (//grids//) uniformes de costo no variable entre saltos o
   casillas y bidireccionales, a diferencia del Greedy y del A* que funcionan en contexto de grafos dirigidos y de peso de
-  los arcos variable.
+  arcos variable.
 
 
 %tex% ''' \newpage
