@@ -358,6 +358,22 @@ mapas de prueba pueden ser ubicados en el repositorio en:
 Los tres mapas son crecientes en dificultad. A continuación se incluye una captura de pantalla
 de cada algoritmo corriendo en cada uno de los mapas de prueba.
 
+== Ejecucion del programa ==[ejecucion_del_programa]
+
+Para ejecutar el programa realice lo siguiente:
+
+{{{ erlang
+$ erl
+1> c(search.erl).
+2> board:start().
+3> search:greedy().
+4> search:a_star().
+5> search:jump_points().
+}}}
+
+En el caso 2, y entre los pasos 3,4 y 5 se debe configurar el entorno y reiniciarlo 
+en caso de que fuera requerido.
+
 == Mapa1 ==[mapa1]
 
 
