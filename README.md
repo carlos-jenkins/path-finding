@@ -1,5 +1,5 @@
-Path Finding
-============
+About
+=====
 
 Some path finding algorithms written in Erlang:
 
@@ -38,7 +38,7 @@ How to use
 License
 =======
 
-Copyright (C) 2012 Carlos Jenkins <carlos@jenkins.co.cr>
+Copyright (C) 2012 Carlos Jenkins <carlos@jenkins.co.cr>  
 Copyright (C) 2012 Pablo Rodriguez <pabloarb@gmail.com>
 
 This program is free software; you can redistribute it and/or modify
