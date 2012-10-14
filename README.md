@@ -29,8 +29,8 @@ How to use
 - Compile the search module:
     ``3> c(search.erl).``
 - Run the desired algorithm.
-    ``4> search:greedy().``
-    ``4> search:a_star().``
+    ``4> search:greedy().``  
+    ``4> search:a_star().``  
     ``4> search:jump_points().``
 - Enjoy :)
 
