@@ -11,11 +11,11 @@ Some path finding algorithms written in Erlang:
 Screenshots
 ===========
 
-![Best-First Greedy in test map 1](/tests/test1_greedy.png "Best-First Greedy in test map 1")
+![Best-First Greedy in test map 1](https://github.com/carlos-jenkins/path-finding/blob/master/tests/test1_greedy.png "Best-First Greedy in test map 1")
 
-![A* in test map 2](/tests/test2_a_star.png "A* in test map 2")
+![A* in test map 2](https://github.com/carlos-jenkins/path-finding/blob/master/tests/test2_a_star.png "A* in test map 2")
 
-![Jump Points in test map 3](/tests/test3_jump_points.png "Jump Points in test map 3")
+![Jump Points in test map 3](https://github.com/carlos-jenkins/path-finding/blob/master/tests/test3_jump_points.png "Jump Points in test map 3")
 
 
 How to use
